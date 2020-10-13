@@ -223,7 +223,7 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR, uniform bool Us
         MidspotSign * Parameters.GlossMidspotColor +
         HotspotSign * Parameters.GlossHotspotColor);
 
-    // Emissive Term
+    // Emissive term
     float3 EmissiveTerm = 0.0;
 
     // Rim emissive
