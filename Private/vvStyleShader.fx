@@ -348,7 +348,6 @@ technique TEdge<string MMDPass = "edge";>
     {
         StencilRef = 64;
         StencilFunc = NOTEQUAL;
-        ZWriteEnable = FALSE;
         VertexShader = compile VS_MODEL SilhouettePassVS();
         PixelShader  = compile PS_MODEL SilhouettePassPS();
     }
