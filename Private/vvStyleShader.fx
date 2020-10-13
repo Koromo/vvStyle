@@ -67,7 +67,7 @@ void DecodeShaderParameters(out ShaderParameters OutParameters)
     OutParameters.HalftoneShadowAngle = 0.0;
     OutParameters.HalftoneShadowIntensify = 0.14;
     OutParameters.SilhouetteEnabled = true;
-    OutParameters.SilhouetteOffset = float2(-0.01, 0.01);
+    OutParameters.SilhouetteOffset = float2(-0.012, 0.012);
     OutParameters.SilhouetteColor = float3(1.0, 1.0, 0.0);
 
     // Override parameters
