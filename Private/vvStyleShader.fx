@@ -359,4 +359,3 @@ technique TEdge<string MMDPass = "edge";>
         PixelShader  = compile PS_MODEL EdgePassPS();
     }
 }
-
