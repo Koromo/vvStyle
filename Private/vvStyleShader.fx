@@ -63,9 +63,9 @@ void DecodeShaderParameters(out ShaderParameters OutParameters)
     OutParameters.HalftoneGlossTiles = 256;
     OutParameters.HalftoneGlossAngle = 0.25;
     OutParameters.HalftoneGlossIntensify = 1.0;
-    OutParameters.HalftoneShadowTiles = 128;
+    OutParameters.HalftoneShadowTiles = 180;
     OutParameters.HalftoneShadowAngle = 0.0;
-    OutParameters.HalftoneShadowIntensify = 0.14;
+    OutParameters.HalftoneShadowIntensify = 0.04;
     OutParameters.SilhouetteEnabled = true;
     OutParameters.SilhouetteOffset = float2(-0.012, 0.012);
     OutParameters.SilhouetteColor = float3(1.0, 1.0, 0.0);
@@ -270,7 +270,8 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR)
     // Shadow color
     float ShadowSign = saturate(sign(Parameters.ShadowThreshold - Context.NoL));
     float ShadowMask = HalftoneShadow(Parameters, In.ClipPosition.xy / In.ClipPosition.w);
-    float3 ShadowColor = lerp(1.0, Parameters.ShadowColor, ShadowSign * ShadowMask);
+    float3 DesiredShadow = lerp(Parameters.ShadowColor, ToonColor, 0.5);
+    float3 ShadowColor = lerp(1.0, DesiredShadow, ShadowSign * ShadowMask);
 
     LightAccumulator += (DiffuseTerm + SpecularTerm) * ShadowColor + EmissiveTerm;
 

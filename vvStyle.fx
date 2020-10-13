@@ -48,11 +48,11 @@
 // 0~1
 #define HALFTONE_GLOSS_INTENSIFY 1.0
 // 1~
-#define HALFTONE_SHADOW_TILES 128
+#define HALFTONE_SHADOW_TILES 180
 // 0~1
 #define HALFTONE_SHADOW_ANGLE 0.0
 // 0~1
-#define HALFTONE_SHADOW_INTENSIFY 0.14
+#define HALFTONE_SHADOW_INTENSIFY 0.04
 
 ////////////////////////////////////////////////////////////////
 // シルエット

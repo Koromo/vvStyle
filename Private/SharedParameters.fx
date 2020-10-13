@@ -8,13 +8,12 @@ float3 CameraPosition : POSITION<string Object = "Camera";>;
 
 // マテリアル
 float4 DiffuseColor : DIFFUSE<string Object = "Geometry";>;
+float3 ToonColor : TOONCOLOR;
 float4 EdgeColor : EDGECOLOR;
 
 // シェーダー
 bool use_texture;
-
 float2 ViewportSize : VIEWPORTPIXELSIZE;
-
 texture BaseTexture : MATERIALTEXTURE;
 
 sampler BaseTextureSampler = sampler_state
