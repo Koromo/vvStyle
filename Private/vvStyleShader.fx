@@ -154,7 +154,7 @@ float HalftoneGloss(ShaderParameters Parameters, float2 ClipPosition)
     float2 Point = (ClipPosition + 1.0) * float2(0.5, -0.5) * float2(ViewportSize.x / ViewportSize.y, 1.0);
 
     // UV rotation
-    const float t = Parameters.HalftoneShadowAngle * PI;
+    const float t = Parameters.HalftoneGlossAngle * PI;
     const float2x2 Rotation = {cos(t), sin(t), -sin(t), cos(t)};
     Point = mul(Point, Rotation);
 
