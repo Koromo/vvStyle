@@ -244,7 +244,7 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR, uniform bool Us
 
 technique TObjectSS_F<string MMDPass = "object_ss"; bool UseTexture = false;>
 {
-    pass Main
+    pass BasePass
     {
         VertexShader = compile VS_MODEL BasePassVS();
         PixelShader  = compile PS_MODEL BasePassPS(false);
@@ -253,7 +253,7 @@ technique TObjectSS_F<string MMDPass = "object_ss"; bool UseTexture = false;>
 
 technique TObjectSS_T<string MMDPass = "object_ss"; bool UseTexture = true;>
 {
-    pass Main
+    pass BasePass
     {
         VertexShader = compile VS_MODEL BasePassVS();
         PixelShader  = compile PS_MODEL BasePassPS(true);
