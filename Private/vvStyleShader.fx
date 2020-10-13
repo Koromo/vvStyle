@@ -224,7 +224,7 @@ void BasePassVS(BasePassAssembled In, out BasePassInterpolants Out)
     Out.TexCoord = In.TexCoord;
 }
 
-void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR, uniform bool UseTexture)
+void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR)
 {
     ShaderParameters Parameters;
     DecodeShaderParameters(Parameters);    
@@ -240,7 +240,7 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR, uniform bool Us
 
     // Diffuse term
     float3 DiffuseTerm = DiffuseColor.rgb;
-    if (UseTexture)
+    if (use_texture)
     {
         DiffuseTerm *= tex2D(BaseTextureSampler, In.TexCoord);
     }
@@ -312,25 +312,25 @@ void EdgePassPS(EdgePassInterpolants In, out float4 Out : COLOR)
     Out = EdgeColor;
 }
 
-technique TObjectSS_F<string MMDPass = "object_ss"; bool UseTexture = false;>
+technique TObject<string MMDPass = "object";>
 {
     pass BasePass
     {
         StencilRef = 64;
         StencilPass = REPLACE;
         VertexShader = compile VS_MODEL BasePassVS();
-        PixelShader  = compile PS_MODEL BasePassPS(true);
+        PixelShader  = compile PS_MODEL BasePassPS();
     }
 }
 
-technique TObjectSS_T<string MMDPass = "object_ss"; bool UseTexture = true;>
+technique TObjectSS<string MMDPass = "object_ss";>
 {
     pass BasePass
     {
         StencilRef = 64;
         StencilPass = REPLACE;
         VertexShader = compile VS_MODEL BasePassVS();
-        PixelShader  = compile PS_MODEL BasePassPS(true);
+        PixelShader  = compile PS_MODEL BasePassPS();
     }
 }
 

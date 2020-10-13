@@ -11,6 +11,8 @@ float4 DiffuseColor : DIFFUSE<string Object = "Geometry";>;
 float4 EdgeColor : EDGECOLOR;
 
 // シェーダー
+bool use_texture;
+
 float2 ViewportSize : VIEWPORTPIXELSIZE;
 
 texture BaseTexture : MATERIALTEXTURE;
