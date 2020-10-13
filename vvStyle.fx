@@ -59,7 +59,7 @@
 ////////////////////////////////////////////////////////////////
 // Boolean
 #define SILHOUETTE_ENABLED true
-// 0~1
+// -1~1
 #define SILHOUETTE_OFFSET float2(-0.012, 0.012)
 // 0~
 #define SILHOUETTE_COLOR float3(1.0, 1.0, 0.0)
