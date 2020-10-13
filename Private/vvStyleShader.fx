@@ -316,18 +316,10 @@ technique TObjectSS_F<string MMDPass = "object_ss"; bool UseTexture = false;>
 {
     pass BasePass
     {
-        StencilRef = 1;
+        StencilRef = 64;
         StencilPass = REPLACE;
         VertexShader = compile VS_MODEL BasePassVS();
         PixelShader  = compile PS_MODEL BasePassPS(true);
-    }
-
-    pass SilhouettePass
-    {
-        StencilRef = 1;
-        StencilFunc = NOTEQUAL;
-        VertexShader = compile VS_MODEL SilhouettePassVS();
-        PixelShader  = compile PS_MODEL SilhouettePassPS();
     }
 }
 
