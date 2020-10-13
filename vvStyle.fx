@@ -15,18 +15,18 @@
 ////////////////////////////////////////////////////////////////
 // 0~
 #define GLOSS_EXPONENT 64
-// 0~1 (GLOSS_HIGHHOTSPOT_THRESHOLD >= GLOSS_LOWHOTSPOT_THRESHOLD >= GLOSS_THRESHOLD)
+// 0~1 (GLOSS_HOTSPOT_THRESHOLD >= GLOSS_MIDSPOT_THRESHOLD >= GLOSS_THRESHOLD)
 #define GLOSS_THRESHOLD 0.1
 // 0~
 #define GLOSS_COLOR float3(0.6, 0.6, 0.6)
 // 0~1
-#define GLOSS_LOWHOTSPOT_THRESHOLD 0.6
+#define GLOSS_MIDSPOT_THRESHOLD 0.6
 // 0~
-#define GLOSS_LOWHOTSPOT_COLOR float3(1.0, 0.5, 1.0)
+#define GLOSS_MIDSPOT_COLOR float3(1.0, 0.5, 1.0)
 // 0~1
-#define GLOSS_HIGHHOTSPOT_THRESHOLD 0.8
+#define GLOSS_HOTSPOT_THRESHOLD 0.8
 // 0~
-#define GLOSS_HIGHHOTSPOT_COLOR float3(0.5, 0.5, 1.2)
+#define GLOSS_HOTSPOT_COLOR float3(0.5, 0.5, 1.2)
 
 ////////////////////////////////////////////////////////////////
 // リムライト

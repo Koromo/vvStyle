@@ -11,11 +11,11 @@ struct ShaderParameters
     float GlossThreshold;
     float3 GlossColor;
 
-    float GlossLowHotspotThreshold;
-    float3 GlossLowHotspotColor;
+    float GlossMidspotThreshold;
+    float3 GlossMidspotColor;
 
-    float GlossHighHotspotThreshold;
-    float3 GlossHighHotspotColor;
+    float GlossHotspotThreshold;
+    float3 GlossHotspotColor;
 
     float RimThreshold;
     float3 RimGlossColor;
@@ -51,10 +51,10 @@ void DecodeShaderParameters(out ShaderParameters OutParameters)
     OutParameters.GlossExponent = 64;
     OutParameters.GlossThreshold = 0.1;
     OutParameters.GlossColor = float3(0.6, 0.6, 0.6);
-    OutParameters.GlossLowHotspotThreshold = 0.6;
-    OutParameters.GlossLowHotspotColor = float3(1.0, 0.5, 1.0);
-    OutParameters.GlossHighHotspotThreshold = 0.8;
-    OutParameters.GlossHighHotspotColor = float3(0.5, 0.5, 1.2);
+    OutParameters.GlossMidspotThreshold = 0.6;
+    OutParameters.GlossMidspotColor = float3(1.0, 0.5, 1.0);
+    OutParameters.GlossHotspotThreshold = 0.8;
+    OutParameters.GlossHotspotColor = float3(0.5, 0.5, 1.2);
     OutParameters.RimThreshold = 0.3;
     OutParameters.RimGlossColor = float3(0.7, 0.7, 0.3);
     OutParameters.RimShadowColor = float3(0.7, 0.2, 0.7);
@@ -82,17 +82,17 @@ void DecodeShaderParameters(out ShaderParameters OutParameters)
 #ifdef GLOSS_COLOR
     OutParameters.GlossColor = GLOSS_COLOR;
 #endif
-#ifdef GLOSS_LOWHOTSPOT_THRESHOLD
-    OutParameters.GlossLowHotspotThreshold = GLOSS_LOWHOTSPOT_THRESHOLD;
+#ifdef GLOSS_MIDSPOT_THRESHOLD
+    OutParameters.GlossMidspotThreshold = GLOSS_MIDSPOT_THRESHOLD;
 #endif
-#ifdef GLOSS_LOWHOTSPOT_COLOR
-    OutParameters.GlossLowHotspotColor = GLOSS_LOWHOTSPOT_COLOR;
+#ifdef GLOSS_MIDSPOT_COLOR
+    OutParameters.GlossMidspotColor = GLOSS_MIDSPOT_COLOR;
 #endif
-#ifdef GLOSS_HIGHHOTSPOT_THRESHOLD
-    OutParameters.GlossHighHotspotThreshold = GLOSS_HIGHHOTSPOT_THRESHOLD;
+#ifdef GLOSS_HOTSPOT_THRESHOLD
+    OutParameters.GlossHotspotThreshold = GLOSS_HOTSPOT_THRESHOLD;
 #endif
-#ifdef GLOSS_HIGHHOTSPOT_COLOR
-    OutParameters.GlossHighHotspotColor = GLOSS_HIGHHOTSPOT_COLOR;
+#ifdef GLOSS_HOTSPOT_COLOR
+    OutParameters.GlossHotspotColor = GLOSS_HOTSPOT_COLOR;
 #endif
 #ifdef RIM_THRESHOLD
     OutParameters.RimThreshold = RIM_THRESHOLD;
@@ -214,14 +214,14 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR, uniform bool Us
 
     // Gloss specular
     float GlossLight = pow(saturate(Context.NoH), Parameters.GlossExponent);
-    float HighHotspotSign = saturate(sign(GlossLight - Parameters.GlossHighHotspotThreshold));
-    float LowHotspotSign = saturate(sign(GlossLight - Parameters.GlossLowHotspotThreshold)) * (1.0 - HighHotspotSign);
-    float GlossSign = saturate(sign(GlossLight - Parameters.GlossThreshold)) * (1.0 - HighHotspotSign) * (1.0 - LowHotspotSign);
+    float HotspotSign = saturate(sign(GlossLight - Parameters.GlossHotspotThreshold));
+    float MidspotSign = saturate(sign(GlossLight - Parameters.GlossMidspotThreshold)) * (1.0 - HotspotSign);
+    float GlossSign = saturate(sign(GlossLight - Parameters.GlossThreshold)) * (1.0 - HotspotSign) * (1.0 - MidspotSign);
     float GlossMask = HalftoneGloss(Parameters, In.ClipPosition.xy / In.ClipPosition.w);
     SpecularTerm += GlossLight * GlossMask *
         (GlossSign * Parameters.GlossColor +
-        LowHotspotSign * Parameters.GlossLowHotspotColor +
-        HighHotspotSign * Parameters.GlossHighHotspotColor);
+        MidspotSign * Parameters.GlossMidspotColor +
+        HotspotSign * Parameters.GlossHotspotColor);
 
     // Emissive Term
     float3 EmissiveTerm = 0.0;
