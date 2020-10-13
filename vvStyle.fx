@@ -55,8 +55,14 @@
 #define HALFTONE_SHADOW_INTENSIFY 0.14
 
 ////////////////////////////////////////////////////////////////
-// Width/Height
-#define ASPECT_RATIO (1.9 / 1.0)
+// シルエット
+////////////////////////////////////////////////////////////////
+// Boolean
+#define SILHOUETTE_ENABLED true
+// 0~1
+#define SILHOUETTE_OFFSET float2(-0.012, 0.012)
+// 0~
+#define SILHOUETTE_COLOR float3(1.0, 1.0, 0.0)
 
 
 // Don't Touch!

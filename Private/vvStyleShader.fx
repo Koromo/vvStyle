@@ -29,7 +29,9 @@ struct ShaderParameters
     float HalftoneShadowAngle;
     float HalftoneShadowIntensify;
 
-    float AspectRatio;
+    bool SilhouetteEnabled;
+    float2 SilhouetteOffset;
+    float3 SilhouetteColor;
 };
 
 struct LightContext
@@ -64,7 +66,9 @@ void DecodeShaderParameters(out ShaderParameters OutParameters)
     OutParameters.HalftoneShadowTiles = 128;
     OutParameters.HalftoneShadowAngle = 0.0;
     OutParameters.HalftoneShadowIntensify = 0.14;
-    OutParameters.AspectRatio = 1.0;
+    OutParameters.SilhouetteEnabled = true;
+    OutParameters.SilhouetteOffset = float2(-0.01, 0.01);
+    OutParameters.SilhouetteColor = float3(1.0, 1.0, 0.0);
 
     // Override parameters
 #ifdef SHADOW_THRESHOLD
@@ -121,14 +125,20 @@ void DecodeShaderParameters(out ShaderParameters OutParameters)
 #ifdef HALFTONE_SHADOW_INTENSIFY
     OutParameters.HalftoneShadowIntensify = HALFTONE_SHADOW_INTENSIFY;
 #endif
-#ifdef ASPECT_RATIO
-    OutParameters.AspectRatio = ASPECT_RATIO;
+#ifdef SILHOUETTE_ENABLED
+    OutParameters.SilhouetteEnabled = SILHOUETTE_ENABLED;
+#endif
+#ifdef SILHOUETTE_OFFSET
+    OutParameters.SilhouetteOffset = SILHOUETTE_OFFSET;
+#endif
+#ifdef SILHOUETTE_COLOR
+    OutParameters.SilhouetteColor = SILHOUETTE_COLOR;
 #endif
 }
 
 void GetLightContext(out LightContext OutContext, float3 N, float3 V, float3 L)
 {
-    float3 H = normalize(V + L);
+    const float3 H = normalize(V + L);
     OutContext.N = N;
     OutContext.V = V;
     OutContext.L = L;
@@ -140,11 +150,14 @@ void GetLightContext(out LightContext OutContext, float3 N, float3 V, float3 L)
 
 float HalftoneGloss(ShaderParameters Parameters, float2 ClipPosition)
 {
+    // Get aspect ratio applied screen position
+    float2 Point = (ClipPosition + 1.0) * float2(0.5, -0.5) * float2(ViewportSize.x / ViewportSize.y, 1.0);
+
     // UV rotation
-    float t = Parameters.HalftoneGlossAngle * PI;
-    float2x2 Rotation = {cos(t), sin(t), -sin(t), cos(t)};
-    float2 Point = (ClipPosition + 1.0) * 0.5 * float2(Parameters.AspectRatio, 1.0);
+    const float t = Parameters.HalftoneShadowAngle * PI;
+    const float2x2 Rotation = {cos(t), sin(t), -sin(t), cos(t)};
     Point = mul(Point, Rotation);
+
     Point *= Parameters.HalftoneGlossTiles;
 
     float r = saturate(distance(frac(Point), 0.5) / 0.5);
@@ -153,11 +166,14 @@ float HalftoneGloss(ShaderParameters Parameters, float2 ClipPosition)
 
 float HalftoneShadow(ShaderParameters Parameters, float2 ClipPosition)
 {
+    // Get aspect ratio applied screen position
+    float2 Point = (ClipPosition + 1.0) * float2(0.5, -0.5) * float2(ViewportSize.x / ViewportSize.y, 1.0);
+
     // UV rotation
-    float t = Parameters.HalftoneShadowAngle * PI;
-    float2x2 Rotation = {cos(t), sin(t), -sin(t), cos(t)};
-    float2 Point = (ClipPosition + 1.0) * 0.5 * float2(Parameters.AspectRatio, 1.0);
+    const float t = Parameters.HalftoneShadowAngle * PI;
+    const float2x2 Rotation = {cos(t), sin(t), -sin(t), cos(t)};
     Point = mul(Point, Rotation);
+
     Point *= Parameters.HalftoneShadowTiles;
 
     float r = abs(Point.x - Point.y);
@@ -178,6 +194,26 @@ struct BasePassInterpolants
     float3 WorldNormal : NORMAL;
     float2 TexCoord : TEXCOORD0;
     float4 ClipPosition : TEXCOORD1;
+};
+
+struct SilhouettePassAssembled
+{
+    float4 Position : POSITION;
+};
+
+struct SilhouettePassInterpolants
+{
+    float4 ClipPosition : SV_POSITION;
+};
+
+struct EdgePassAssembled
+{
+    float4 Position : POSITION;
+};
+
+struct EdgePassInterpolants
+{
+    float4 ClipPosition : SV_POSITION;
 };
 
 void BasePassVS(BasePassAssembled In, out BasePassInterpolants Out)
@@ -242,12 +278,56 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR, uniform bool Us
     Out.a = Alpha;
 }
 
+void SilhouettePassVS(SilhouettePassAssembled In, out SilhouettePassInterpolants Out)
+{
+    ShaderParameters Parameters;
+    DecodeShaderParameters(Parameters);
+
+    // Offset in screen space
+    Out.ClipPosition = mul(In.Position, LocalToClip);
+    Out.ClipPosition.xy += Parameters.SilhouetteOffset * Out.ClipPosition.w;
+
+    if (!Parameters.SilhouetteEnabled)
+    {
+        // Always mapped to outside the viewport
+        Out.ClipPosition = float4(2.0, 2.0, -1.0, 1.0);
+    }
+}
+
+void SilhouettePassPS(SilhouettePassInterpolants In, out float4 Out : COLOR)
+{
+    ShaderParameters Parameters;
+    DecodeShaderParameters(Parameters);
+    Out.rgb = Parameters.SilhouetteColor;
+    Out.a = 1.0;
+}
+
+void EdgePassVS(EdgePassAssembled In, out EdgePassInterpolants Out)
+{
+    Out.ClipPosition = mul(In.Position, LocalToClip);
+}
+
+void EdgePassPS(EdgePassInterpolants In, out float4 Out : COLOR)
+{
+    Out = EdgeColor;
+}
+
 technique TObjectSS_F<string MMDPass = "object_ss"; bool UseTexture = false;>
 {
     pass BasePass
     {
+        StencilRef = 1;
+        StencilPass = REPLACE;
         VertexShader = compile VS_MODEL BasePassVS();
-        PixelShader  = compile PS_MODEL BasePassPS(false);
+        PixelShader  = compile PS_MODEL BasePassPS(true);
+    }
+
+    pass SilhouettePass
+    {
+        StencilRef = 1;
+        StencilFunc = NOTEQUAL;
+        VertexShader = compile VS_MODEL SilhouettePassVS();
+        PixelShader  = compile PS_MODEL SilhouettePassPS();
     }
 }
 
@@ -255,7 +335,28 @@ technique TObjectSS_T<string MMDPass = "object_ss"; bool UseTexture = true;>
 {
     pass BasePass
     {
+        StencilRef = 64;
+        StencilPass = REPLACE;
         VertexShader = compile VS_MODEL BasePassVS();
         PixelShader  = compile PS_MODEL BasePassPS(true);
     }
 }
+
+technique TEdge<string MMDPass = "edge";>
+{
+    pass SilhouettePass
+    {
+        StencilRef = 64;
+        StencilFunc = NOTEQUAL;
+        ZWriteEnable = FALSE;
+        VertexShader = compile VS_MODEL SilhouettePassVS();
+        PixelShader  = compile PS_MODEL SilhouettePassPS();
+    }
+
+    pass EdgePass
+    {
+        VertexShader = compile VS_MODEL EdgePassVS();
+        PixelShader  = compile PS_MODEL EdgePassPS();
+    }
+}
+
