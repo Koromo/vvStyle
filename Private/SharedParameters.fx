@@ -1,3 +1,6 @@
+#ifndef SHARED_PARAMETERS_FX
+#define SHARED_PARAMETERS_FX
+
 // 座標変換行列
 float4x4 LocalToWorld : WORLD;
 float4x4 LocalToClip : WORLDVIEWPROJECTION;
@@ -11,17 +14,18 @@ float4 DiffuseColor : DIFFUSE<string Object = "Geometry";>;
 float3 ToonColor : TOONCOLOR;
 float4 EdgeColor : EDGECOLOR;
 
-// シェーダー
-bool use_texture;
-float2 ViewportSize : VIEWPORTPIXELSIZE;
-texture BaseTexture : MATERIALTEXTURE;
+// テクスチャ
+texture ObjectTexture : MATERIALTEXTURE;
 
-sampler BaseTextureSampler = sampler_state
+sampler ObjectTextureSampler = sampler_state
 {
-    texture = <BaseTexture>;
-    MINFILTER = LINEAR;
-    MAGFILTER = LINEAR;
-    MIPFILTER = LINEAR;
-    ADDRESSU  = WRAP;
-    ADDRESSV  = WRAP;
+    texture = <ObjectTexture>;
+    Filter = ANISOTROPIC;
+    MaxAnisotropy = 16;
 };
+
+// シェーダー
+float2 ViewportSize : VIEWPORTPIXELSIZE;
+bool use_texture;
+
+#endif

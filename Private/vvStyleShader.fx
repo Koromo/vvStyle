@@ -1,38 +1,12 @@
+#ifndef VVSTYLE_SHADER_FX
+#define VVSTYLE_SHADER_FX
+
+#include "Private/SharedParameters.fx"
+#include "Private/vvStyleParameters.fx"
+
 #define PI 3.141592
 #define VS_MODEL vs_3_0
 #define PS_MODEL ps_3_0
-
-struct ShaderParameters
-{
-    float ShadowThreshold;
-    float3 ShadowColor;
-
-    float GlossExponent;
-    float GlossThreshold;
-    float3 GlossColor;
-
-    float GlossMidspotThreshold;
-    float3 GlossMidspotColor;
-
-    float GlossHotspotThreshold;
-    float3 GlossHotspotColor;
-
-    float RimThreshold;
-    float3 RimGlossColor;
-    float3 RimShadowColor;
-    
-    float HalftoneGlossTiles;
-    float HalftoneGlossAngle;
-    float HalftoneGlossIntensify;
-    
-    float HalftoneShadowTiles;
-    float HalftoneShadowAngle;
-    float HalftoneShadowIntensify;
-
-    bool SilhouetteEnabled;
-    float2 SilhouetteOffset;
-    float3 SilhouetteColor;
-};
 
 struct LightContext
 {
@@ -45,139 +19,47 @@ struct LightContext
     float NoH;
 };
 
-void DecodeShaderParameters(out ShaderParameters OutParameters)
+void GetLightContext(out LightContext Out, float3 N, float3 V, float3 L)
 {
-    // Set default values
-    OutParameters.ShadowThreshold = -0.4;
-    OutParameters.ShadowColor = float3(0.0, 0.0, 0.6);
-    OutParameters.GlossExponent = 64;
-    OutParameters.GlossThreshold = 0.1;
-    OutParameters.GlossColor = float3(0.6, 0.6, 0.6);
-    OutParameters.GlossMidspotThreshold = 0.6;
-    OutParameters.GlossMidspotColor = float3(1.0, 0.5, 1.0);
-    OutParameters.GlossHotspotThreshold = 0.8;
-    OutParameters.GlossHotspotColor = float3(0.5, 0.5, 1.2);
-    OutParameters.RimThreshold = 0.3;
-    OutParameters.RimGlossColor = float3(0.7, 0.7, 0.3);
-    OutParameters.RimShadowColor = float3(0.7, 0.2, 0.7);
-    OutParameters.HalftoneGlossTiles = 256;
-    OutParameters.HalftoneGlossAngle = 0.25;
-    OutParameters.HalftoneGlossIntensify = 1.0;
-    OutParameters.HalftoneShadowTiles = 180;
-    OutParameters.HalftoneShadowAngle = 0.0;
-    OutParameters.HalftoneShadowIntensify = 0.04;
-    OutParameters.SilhouetteEnabled = true;
-    OutParameters.SilhouetteOffset = float2(-0.012, 0.012);
-    OutParameters.SilhouetteColor = float3(1.0, 1.0, 0.0);
-
-    // Override parameters
-#ifdef SHADOW_THRESHOLD
-    OutParameters.ShadowThreshold = SHADOW_THRESHOLD;
-#endif
-#ifdef SHADOW_COLOR
-    OutParameters.ShadowColor = SHADOW_COLOR;
-#endif
-#ifdef GLOSS_EXPONENT
-    OutParameters.GlossExponent = GLOSS_EXPONENT;
-#endif
-#ifdef GLOSS_THRESHOLD
-    OutParameters.GlossThreshold = GLOSS_THRESHOLD;
-#endif
-#ifdef GLOSS_COLOR
-    OutParameters.GlossColor = GLOSS_COLOR;
-#endif
-#ifdef GLOSS_MIDSPOT_THRESHOLD
-    OutParameters.GlossMidspotThreshold = GLOSS_MIDSPOT_THRESHOLD;
-#endif
-#ifdef GLOSS_MIDSPOT_COLOR
-    OutParameters.GlossMidspotColor = GLOSS_MIDSPOT_COLOR;
-#endif
-#ifdef GLOSS_HOTSPOT_THRESHOLD
-    OutParameters.GlossHotspotThreshold = GLOSS_HOTSPOT_THRESHOLD;
-#endif
-#ifdef GLOSS_HOTSPOT_COLOR
-    OutParameters.GlossHotspotColor = GLOSS_HOTSPOT_COLOR;
-#endif
-#ifdef RIM_THRESHOLD
-    OutParameters.RimThreshold = RIM_THRESHOLD;
-#endif
-#ifdef RIM_GLOSS_COLOR
-    OutParameters.RimGlossColor = RIM_GLOSS_COLOR;
-#endif
-#ifdef RIM_SHADOW_COLOR
-    OutParameters.RimShadowColor = RIM_SHADOW_COLOR;
-#endif
-#ifdef HALFTONE_GLOSS_TILES
-    OutParameters.HalftoneGlossTiles = HALFTONE_GLOSS_TILES;
-#endif
-#ifdef HALFTONE_GLOSS_ANGLE
-    OutParameters.HalftoneGlossAngle = HALFTONE_GLOSS_ANGLE;
-#endif
-#ifdef HALFTONE_GLOSS_INTENSIFY
-    OutParameters.HalftoneGlossIntensify = HALFTONE_GLOSS_INTENSIFY;
-#endif
-#ifdef HALFTONE_SHADOW_TILES
-    OutParameters.HalftoneShadowTiles = HALFTONE_SHADOW_TILES;
-#endif
-#ifdef HALFTONE_SHADOW_ANGLE
-    OutParameters.HalftoneShadowAngle = HALFTONE_SHADOW_ANGLE;
-#endif
-#ifdef HALFTONE_SHADOW_INTENSIFY
-    OutParameters.HalftoneShadowIntensify = HALFTONE_SHADOW_INTENSIFY;
-#endif
-#ifdef SILHOUETTE_ENABLED
-    OutParameters.SilhouetteEnabled = SILHOUETTE_ENABLED;
-#endif
-#ifdef SILHOUETTE_OFFSET
-    OutParameters.SilhouetteOffset = SILHOUETTE_OFFSET;
-#endif
-#ifdef SILHOUETTE_COLOR
-    OutParameters.SilhouetteColor = SILHOUETTE_COLOR;
-#endif
+    Out.N = N;
+    Out.V = V;
+    Out.L = L;
+    Out.H = normalize(V + L);
+    Out.NoL = dot(N, L);
+    Out.NoV = dot(N, V);
+    Out.NoH = dot(N, Out.H);
 }
 
-void GetLightContext(out LightContext OutContext, float3 N, float3 V, float3 L)
-{
-    const float3 H = normalize(V + L);
-    OutContext.N = N;
-    OutContext.V = V;
-    OutContext.L = L;
-    OutContext.H = H;
-    OutContext.NoL = dot(N, L);
-    OutContext.NoV = dot(N, V);
-    OutContext.NoH = dot(N, H);
-}
-
-float HalftoneGloss(ShaderParameters Parameters, float2 ClipPosition)
+float HalftoneGloss(float2 ClipPosition)
 {
     // Get aspect ratio applied screen position
     float2 Point = (ClipPosition + 1.0) * float2(0.5, -0.5) * float2(ViewportSize.x / ViewportSize.y, 1.0);
 
     // UV rotation
-    const float t = Parameters.HalftoneGlossAngle * PI;
+    const float t = HalftoneGlossAngle * PI;
     const float2x2 Rotation = {cos(t), sin(t), -sin(t), cos(t)};
     Point = mul(Point, Rotation);
 
-    Point *= Parameters.HalftoneGlossTiles;
+    Point *= HalftoneGlossTiles;
 
     const float r = saturate(distance(frac(Point), 0.5) / 0.5);
-    return 1.0 - (1.0 - pow(1.0 - r, 2.0)) * Parameters.HalftoneGlossIntensify;
+    return 1.0 - (1.0 - pow(1.0 - r, 2.0)) * HalftoneGlossIntensify;
 }
 
-float HalftoneShadow(ShaderParameters Parameters, float2 ClipPosition)
+float HalftoneShadow(float2 ClipPosition)
 {
     // Get aspect ratio applied screen position
     float2 Point = (ClipPosition + 1.0) * float2(0.5, -0.5) * float2(ViewportSize.x / ViewportSize.y, 1.0);
 
     // UV rotation
-    const float t = Parameters.HalftoneShadowAngle * PI;
+    const float t = HalftoneShadowAngle * PI;
     const float2x2 Rotation = {cos(t), sin(t), -sin(t), cos(t)};
     Point = mul(Point, Rotation);
 
-    Point *= Parameters.HalftoneShadowTiles;
+    Point *= HalftoneShadowTiles;
 
     const float r = abs(Point.x - Point.y);
-    return 1.0 - (1.0 - pow(cos(r * PI), 2.0)) * Parameters.HalftoneShadowIntensify;
+    return 1.0 - (1.0 - pow(cos(r * PI), 2.0)) * HalftoneShadowIntensify;
 }
 
 struct BasePassAssembled
@@ -189,7 +71,7 @@ struct BasePassAssembled
 
 struct BasePassInterpolants
 {
-    float4 SysClipPosition : SV_POSITION;
+    float4 svClipPosition : SV_POSITION;
     float4 WorldPosition : POSITION1;
     float3 WorldNormal : NORMAL;
     float2 TexCoord : TEXCOORD0;
@@ -218,7 +100,7 @@ struct EdgePassInterpolants
 
 void BasePassVS(BasePassAssembled In, out BasePassInterpolants Out)
 {
-    Out.SysClipPosition = Out.ClipPosition = mul(In.Position, LocalToClip);
+    Out.svClipPosition = Out.ClipPosition = mul(In.Position, LocalToClip);
     Out.WorldPosition = mul(In.Position, LocalToWorld);
     Out.WorldNormal = normalize(mul(float4(In.Normal, 0.0), LocalToWorld).xyz);
     Out.TexCoord = In.TexCoord;
@@ -226,9 +108,6 @@ void BasePassVS(BasePassAssembled In, out BasePassInterpolants Out)
 
 void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR)
 {
-    ShaderParameters Parameters;
-    DecodeShaderParameters(Parameters);    
-    
     // Alpha
     float Alpha = DiffuseColor.a;
 
@@ -242,38 +121,34 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR)
     float3 DiffuseTerm = DiffuseColor.rgb;
     if (use_texture)
     {
-        DiffuseTerm *= tex2D(BaseTextureSampler, In.TexCoord);
+        DiffuseTerm *= tex2D(ObjectTextureSampler, In.TexCoord).rgb;
     }
 
     // Specular term
     float3 SpecularTerm = 0.0;
 
     // Gloss specular
-    float GlossLight = pow(saturate(Context.NoH), Parameters.GlossExponent);
-    float HotspotSign = saturate(sign(GlossLight - Parameters.GlossHotspotThreshold));
-    float MidspotSign = saturate(sign(GlossLight - Parameters.GlossMidspotThreshold)) * (1.0 - HotspotSign);
-    float GlossSign = saturate(sign(GlossLight - Parameters.GlossThreshold)) * (1.0 - HotspotSign) * (1.0 - MidspotSign);
-    float GlossMask = HalftoneGloss(Parameters, In.ClipPosition.xy / In.ClipPosition.w);
-    SpecularTerm += GlossLight * GlossMask *
-        (GlossSign * Parameters.GlossColor +
-        MidspotSign * Parameters.GlossMidspotColor +
-        HotspotSign * Parameters.GlossHotspotColor);
+    float GlossLight = pow(saturate(Context.NoH), GlossExponent);
+    float HotspotSign = saturate(sign(GlossLight - HotspotThreshold));
+    float MidspotSign = saturate(sign(GlossLight - MidspotThreshold)) * (1.0 - HotspotSign);
+    float GlossSign = saturate(sign(GlossLight - GlossThreshold)) * (1.0 - HotspotSign) * (1.0 - MidspotSign);
+    float GlossMask = HalftoneGloss(In.ClipPosition.xy / In.ClipPosition.w);
+    SpecularTerm += GlossLight * GlossMask * (GlossSign * GlossColor + MidspotSign * MidspotColor + HotspotSign * HotspotColor);
 
     // Emissive term
     float3 EmissiveTerm = 0.0;
 
     // Rim emissive
-    float RimSign = saturate(sign(Parameters.RimThreshold - abs(Context.NoV)));
-    EmissiveTerm += RimSign * saturate(Context.NoL) * Parameters.RimGlossColor;
-    EmissiveTerm += RimSign * saturate(-Context.NoL) * Parameters.RimShadowColor;
+    float RimSign = saturate(sign(RimThreshold - pow(abs(Context.NoV), 2.0)));
+    EmissiveTerm += RimSign * saturate(Context.NoL) * RimGlossColor;
+    EmissiveTerm += RimSign * saturate(-Context.NoL) * RimShadowColor;
 
-    // Shadow color
-    float ShadowSign = saturate(sign(Parameters.ShadowThreshold - Context.NoL));
-    float ShadowMask = HalftoneShadow(Parameters, In.ClipPosition.xy / In.ClipPosition.w);
-    float3 DesiredShadow = lerp(Parameters.ShadowColor, ToonColor, 0.5);
-    float3 ShadowColor = lerp(1.0, DesiredShadow, ShadowSign * ShadowMask);
+    // Shadow term
+    float ShadowSign = saturate(sign(ShadowThreshold - Context.NoL));
+    float ShadowMask = HalftoneShadow(In.ClipPosition.xy / In.ClipPosition.w);
+    float3 ShadowTerm = lerp(1.0, ShadowColor * ToonColor, ShadowSign * ShadowMask);
 
-    LightAccumulator += (DiffuseTerm + SpecularTerm) * ShadowColor + EmissiveTerm;
+    LightAccumulator += (DiffuseTerm + SpecularTerm) * ShadowTerm + EmissiveTerm;
 
     Out.rgb = LightAccumulator;
     Out.a = Alpha;
@@ -281,14 +156,11 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR)
 
 void SilhouettePassVS(SilhouettePassAssembled In, out SilhouettePassInterpolants Out)
 {
-    ShaderParameters Parameters;
-    DecodeShaderParameters(Parameters);
-
     // Offset in screen space
     Out.ClipPosition = mul(In.Position, LocalToClip);
-    Out.ClipPosition.xy += Parameters.SilhouetteOffset * Out.ClipPosition.w;
+    Out.ClipPosition.xy += SilhouetteOffset * Out.ClipPosition.w;
 
-    if (!Parameters.SilhouetteEnabled)
+    if (!SilhouetteEnabled)
     {
         // Always mapped to outside the viewport
         Out.ClipPosition = float4(2.0, 2.0, -1.0, 1.0);
@@ -297,9 +169,7 @@ void SilhouettePassVS(SilhouettePassAssembled In, out SilhouettePassInterpolants
 
 void SilhouettePassPS(SilhouettePassInterpolants In, out float4 Out : COLOR)
 {
-    ShaderParameters Parameters;
-    DecodeShaderParameters(Parameters);
-    Out.rgb = Parameters.SilhouetteColor;
+    Out.rgb = SilhouetteColor;
     Out.a = 1.0;
 }
 
@@ -353,3 +223,5 @@ technique TEdge<string MMDPass = "edge";>
         PixelShader  = compile PS_MODEL SilhouettePassPS();
     }
 }
+
+#endif
