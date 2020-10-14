@@ -139,7 +139,7 @@ void BasePassPS(BasePassInterpolants In, out float4 Out : COLOR)
     float3 EmissiveTerm = 0.0;
 
     // Rim emissive
-    float RimSign = saturate(sign(RimThreshold - pow(abs(Context.NoV), 2.0)));
+    float RimSign = saturate(sign(RimThreshold - abs(Context.NoV)));
     EmissiveTerm += RimSign * saturate(Context.NoL) * RimGlossColor;
     EmissiveTerm += RimSign * saturate(-Context.NoL) * RimShadowColor;
 
