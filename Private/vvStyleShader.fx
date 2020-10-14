@@ -160,7 +160,7 @@ float HalftoneGloss(ShaderParameters Parameters, float2 ClipPosition)
 
     Point *= Parameters.HalftoneGlossTiles;
 
-    float r = saturate(distance(frac(Point), 0.5) / 0.5);
+    const float r = saturate(distance(frac(Point), 0.5) / 0.5);
     return 1.0 - (1.0 - pow(1.0 - r, 2.0)) * Parameters.HalftoneGlossIntensify;
 }
 
@@ -176,7 +176,7 @@ float HalftoneShadow(ShaderParameters Parameters, float2 ClipPosition)
 
     Point *= Parameters.HalftoneShadowTiles;
 
-    float r = abs(Point.x - Point.y);
+    const float r = abs(Point.x - Point.y);
     return 1.0 - (1.0 - pow(cos(r * PI), 2.0)) * Parameters.HalftoneShadowIntensify;
 }
 
