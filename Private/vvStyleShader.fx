@@ -337,17 +337,19 @@ technique TObjectSS<string MMDPass = "object_ss";>
 
 technique TEdge<string MMDPass = "edge";>
 {
+    pass EdgePass
+    {
+        StencilRef = 64;
+        StencilPass = REPLACE;
+        VertexShader = compile VS_MODEL EdgePassVS();
+        PixelShader  = compile PS_MODEL EdgePassPS();
+    }
+
     pass SilhouettePass
     {
         StencilRef = 64;
         StencilFunc = NOTEQUAL;
         VertexShader = compile VS_MODEL SilhouettePassVS();
         PixelShader  = compile PS_MODEL SilhouettePassPS();
-    }
-
-    pass EdgePass
-    {
-        VertexShader = compile VS_MODEL EdgePassVS();
-        PixelShader  = compile PS_MODEL EdgePassPS();
     }
 }
